@@ -330,23 +330,20 @@ class Frame(wx.Frame):
     def get_filetype(self, pathname, filetype):
 
         if filetype != '':
-            filetype = pathname.split('.')
 
             switcher = {
-                'py': 'Python',
-                'c': 'C',
-                'cpp': 'C++',
-                'txt': 'Text',
-                'doc': 'Word',
-                'docx': 'Word',
-                'html': 'HTML',
-                'css': 'CSS',
-                'js': 'JavaScript',
-                'php': 'PHP',
-                'pdf': 'PDF'
+                '.py': 'Python',
+                '.c': 'C',
+                '.cpp': 'C++',
+                '.txt': 'Text',
+                '.cs': 'C#',
+                '.html': 'HTML',
+                '.css': 'CSS',
+                '.js': 'JavaScript',
+                '.php': 'PHP'
             }
 
-            ftype = switcher.get(filetype[1], "." + filetype[1])
+            ftype = switcher.get(filetype[1], filetype[1])
 
             self.StatusBar.SetStatusText(ftype + " File", 1)
         else:
