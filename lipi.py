@@ -13,6 +13,7 @@ class Tab(wx.Panel):
     def __init__(self, parent):
         # Initialize wxPanel
         wx.Panel.__init__(self, parent=parent)
+
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
 
@@ -61,8 +62,9 @@ class Frame(wx.Frame):
         wx.Frame.__init__(self,None,wx.ID_ANY, "LIPI IDE", size=(800,600))
 
         self.panel = wx.Panel(self)
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.panel.SetSizer(self.sizer)
+        #self.panel.SetPosition((200,0))
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.panel.SetSizer(self.sizer,False)
 
         # create the notebook
         self.notebook = fnb.FlatNotebook(self.panel)
@@ -74,8 +76,12 @@ class Frame(wx.Frame):
         self.SetupEditor()
 
     def SetupEditor(self):
+
         # Setup the default tab
         self.SetupDefaultTab()
+
+        # setup the file explorer
+        self.SetFileExplorer()
 
         # Setup the menu bar
         self.SetupMenuBar()
@@ -97,12 +103,18 @@ class Frame(wx.Frame):
         self.Maximize()
         self.Layout()
 
+    # file explorer control
+    def SetFileExplorer(self):
+        self.file_explorer_x , self.file_explorer_y = wx.Frame.GetSize(self)
+        self.file_explorer = wx.GenericDirCtrl(self.panel, -1, size=(200,self.file_explorer_y), style=wx.DIRCTRL_3D_INTERNAL|wx.DIRCTRL_MULTIPLE|wx.DIRCTRL_EDIT_LABELS|wx.EXPAND|wx.ALL)
+
     # Function to setup default tab
     def SetupDefaultTab(self):
         # Create the default tab
         self.default_tab = Tab(self.notebook)
         self.notebook.AddPage(self.default_tab, "Untitled")
-        self.sizer.Add(self.notebook, 1, wx.EXPAND | wx.ALL)
+        self.sizer.Add(self.notebook, 1, wx.EXPAND | wx.LEFT,200)
+        #self.panel.SetSizer(self.sizer)
 
     # function to setup menubar
     def SetupMenuBar(self):
