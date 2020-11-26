@@ -1,4 +1,3 @@
-
 # LIPI TEXT EDITOR AND IDE
 # AUTHOR : ZEEL SHELADIYA , MIHIR SURATI , SAMIP , SOMPRAKASH PRADHAN
 
@@ -18,7 +17,7 @@ class Tab(wx.Panel):
         self.SetSizer(self.sizer)
 
         # create text control in tab
-        self.text_control = wx.TextCtrl(self, style=wx.TE_MULTILINE|wx.TE_RICH2)
+        self.text_control = wx.TextCtrl(self, style=wx.TE_MULTILINE | wx.TE_RICH2)
 
         # set focus to text editor canvas
         self.text_control.SetFocus
@@ -56,21 +55,21 @@ class Tab(wx.Panel):
 
 class Frame(wx.Frame):
     # initialize Frame
-    def __init__(self,parent=None):
+    def __init__(self, parent=None):
 
         # initialize wxframe
-        wx.Frame.__init__(self,None,wx.ID_ANY, "LIPI IDE", size=(800,600))
+        wx.Frame.__init__(self, None, wx.ID_ANY, "LIPI IDE", size=(800, 600))
 
         self.panel = wx.Panel(self)
-        #self.panel.SetPosition((200,0))
+        # self.panel.SetPosition((200,0))
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.panel.SetSizer(self.sizer,False)
+        self.panel.SetSizer(self.sizer, False)
 
         # create the notebook
         self.notebook = fnb.FlatNotebook(self.panel)
         self.notebook.SetFont(wx.Font(15, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, True))
 
-        self.notebook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.on_tab_change)
+        self.notebook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnTabChange)
 
         # call the hight-level setup function
         self.SetupEditor()
@@ -105,16 +104,18 @@ class Frame(wx.Frame):
 
     # file explorer control
     def SetFileExplorer(self):
-        self.file_explorer_x , self.file_explorer_y = wx.Frame.GetSize(self)
-        self.file_explorer = wx.GenericDirCtrl(self.panel, -1, size=(200,self.file_explorer_y), style=wx.DIRCTRL_3D_INTERNAL|wx.DIRCTRL_MULTIPLE|wx.DIRCTRL_EDIT_LABELS|wx.EXPAND|wx.ALL)
+        self.file_explorer_x, self.file_explorer_y = wx.Frame.GetSize(self)
+        self.file_explorer = wx.GenericDirCtrl(self.panel, -1, size=(200, self.file_explorer_y),
+                                               style=wx.DIRCTRL_3D_INTERNAL | wx.DIRCTRL_MULTIPLE | wx.DIRCTRL_EDIT_LABELS | wx.EXPAND)
+        self.file_explorer.Bind(wx.EVT_DIRCTRL_FILEACTIVATED, self.OnFileSelectedFromExp)
 
     # Function to setup default tab
     def SetupDefaultTab(self):
         # Create the default tab
         self.default_tab = Tab(self.notebook)
         self.notebook.AddPage(self.default_tab, "Untitled")
-        self.sizer.Add(self.notebook, 1, wx.EXPAND | wx.LEFT,200)
-        #self.panel.SetSizer(self.sizer)
+        self.sizer.Add(self.notebook, 1, wx.EXPAND | wx.LEFT, 200)
+        # self.panel.SetSizer(self.sizer)
 
     # function to setup menubar
     def SetupMenuBar(self):
@@ -143,27 +144,27 @@ class Frame(wx.Frame):
     def SetupKeyboardShortcuts(self):
         # Setup Keyboard shortcuts
         self.keyboard_CLOSE_TAB = wx.NewId()
-        self.Bind(wx.EVT_MENU,self.OnCloseTab,id=self.keyboard_CLOSE_TAB)
+        self.Bind(wx.EVT_MENU, self.OnCloseTab, id=self.keyboard_CLOSE_TAB)
 
         self.accelerator_table = wx.AcceleratorTable([(wx.ACCEL_CTRL,
-                                                        ord('N'),
-                                                        self.menu_NEW.GetId()),
-                                                        (wx.ACCEL_CTRL,
-                                                        ord('O'),
-                                                        self.menu_OPEN.GetId()),
-                                                        (wx.ACCEL_CTRL,
-                                                        ord('S'),
-                                                        self.menu_SAVE.GetId()),
-                                                        (wx.ACCEL_CTRL,
-                                                        ord('W'),
-                                                        self.keyboard_CLOSE_TAB)])
+                                                       ord('N'),
+                                                       self.menu_NEW.GetId()),
+                                                      (wx.ACCEL_CTRL,
+                                                       ord('O'),
+                                                       self.menu_OPEN.GetId()),
+                                                      (wx.ACCEL_CTRL,
+                                                       ord('S'),
+                                                       self.menu_SAVE.GetId()),
+                                                      (wx.ACCEL_CTRL,
+                                                       ord('W'),
+                                                       self.keyboard_CLOSE_TAB)])
 
         self.SetAcceleratorTable(self.accelerator_table)
 
     # Function to setup toolbar
     def SetupToolBar(self):
-        #setup toolbar here
-        #self.toolbar = self.CreateToolBar()
+        # setup toolbar here
+        # self.toolbar = self.CreateToolBar()
         pass
 
     # Suppress all standard output
@@ -178,7 +179,7 @@ class Frame(wx.Frame):
         self.notebook.AddPage(new_tab, "Untitled", select=True)
         new_tab.filetype = ''
         new_tab.pathname = ''
-        self.get_filetype(new_tab.pathname, new_tab.filetype)
+        self.get_filetype(new_tab.filetype)
 
     def OnOpen(self, e):
         # Create a File Dialog asking for the file to open
@@ -198,7 +199,7 @@ class Frame(wx.Frame):
 
                 # Open the right file
                 filehandle = open(os.path.join(directory, filename), 'r')
-                # Check if a new tabe needs to be created to display contents of opened file
+                # Check if a new tab needs to be created to display contents of opened file
                 if (self.notebook.GetPageCount() == 1
                         and self.notebook.GetCurrentPage().text_control.GetValue() == ""):
                     self.notebook.GetCurrentPage().text_control.SetValue(filehandle.read())
@@ -206,7 +207,7 @@ class Frame(wx.Frame):
                     self.notebook.GetCurrentPage().directory = directory
                     self.notebook.GetCurrentPage().pathname = pathname
                     self.notebook.GetCurrentPage().filetype = filetype
-                    self.get_filetype(self.notebook.GetCurrentPage().pathname, self.notebook.GetCurrentPage().filetype)
+                    self.get_filetype(self.notebook.GetCurrentPage().filetype)
 
                     self.notebook.GetCurrentPage().last_save = self.notebook.GetCurrentPage().text_control.GetValue()
 
@@ -217,7 +218,7 @@ class Frame(wx.Frame):
                     new_tab.directory = directory
                     new_tab.pathname = pathname
                     new_tab.filetype = filetype
-                    self.get_filetype(new_tab.pathname, new_tab.filetype)
+                    self.get_filetype(new_tab.filetype)
 
                     self.notebook.AddPage(new_tab, "Untitled", select=True)
                     wx.CallAfter(new_tab.SetFocus)
@@ -279,7 +280,7 @@ class Frame(wx.Frame):
                     self.notebook.GetCurrentPage().saved = True
                     self.notebook.GetCurrentPage().pathname = pathname
                     self.notebook.GetCurrentPage().filetype = filetype
-                    self.get_filetype(pathname, filetype)
+                    self.get_filetype(filetype)
                 dialog.Destroy()
 
     def OnSaveAs(self, e):
@@ -309,7 +310,7 @@ class Frame(wx.Frame):
                 self.notebook.GetCurrentPage().saved = True
                 self.notebook.GetCurrentPage().pathname = pathname
                 self.notebook.GetCurrentPage().filetype = filetype
-                self.get_filetype(pathname, filetype)
+                self.get_filetype(filetype)
             dialog.Destroy()
         except:
             pass
@@ -333,16 +334,15 @@ class Frame(wx.Frame):
         self.Close(True)
 
     # On tab change -> getting filetype
-    def on_tab_change(self, e):
+    def OnTabChange(self, e):
         current_page = self.notebook.GetCurrentPage()
-        self.get_filetype(current_page.pathname, current_page.filetype)
+        self.get_filetype(current_page.filetype)
         e.Skip()
 
     # Displaying file type in status-bar
-    def get_filetype(self, pathname, filetype):
+    def get_filetype(self, filetype):
 
         if filetype != '':
-
             switcher = {
                 '.py': 'Python',
                 '.c': 'C',
@@ -352,7 +352,8 @@ class Frame(wx.Frame):
                 '.html': 'HTML',
                 '.css': 'CSS',
                 '.js': 'JavaScript',
-                '.php': 'PHP'
+                '.php': 'PHP',
+                '.h': 'Header'
             }
 
             ftype = switcher.get(filetype[1], filetype[1])
@@ -360,6 +361,48 @@ class Frame(wx.Frame):
             self.StatusBar.SetStatusText(ftype + " File", 1)
         else:
             self.StatusBar.SetStatusText("", 1)
+
+    # Opening file while double-clicked or entered in file explorer
+    def OnFileSelectedFromExp(self, e):
+        try:
+            pathname = self.file_explorer.GetPath()
+            filetype = os.path.splitext(pathname)
+            directory = os.path.dirname(pathname)
+            filename = os.path.basename(pathname)
+
+            filehandle = open(pathname, 'r')
+
+            if (self.notebook.GetPageCount() == 1
+                    and self.notebook.GetCurrentPage().text_control.GetValue() == ""):
+                self.notebook.GetCurrentPage().text_control.SetValue(filehandle.read())
+                self.notebook.GetCurrentPage().filename = filename
+                self.notebook.GetCurrentPage().directory = directory
+                self.notebook.GetCurrentPage().pathname = pathname
+                self.notebook.GetCurrentPage().filetype = filetype
+                self.get_filetype(self.notebook.GetCurrentPage().filetype)
+
+                self.notebook.GetCurrentPage().last_save = self.notebook.GetCurrentPage().text_control.GetValue()
+
+                self.notebook.GetCurrentPage().saved = True
+            else:
+                new_tab = Tab(self.notebook)
+                new_tab.filename = filename
+                new_tab.directory = directory
+                new_tab.pathname = pathname
+                new_tab.filetype = filetype
+                self.get_filetype(new_tab.filetype)
+                self.notebook.AddPage(new_tab, "Untitled", select=True)
+                wx.CallAfter(new_tab.SetFocus)
+                # Populate the tab with file contents
+                new_tab.text_control.SetValue(filehandle.read())
+                new_tab.last_save = new_tab.text_control.GetValue()
+                new_tab.saved = True
+            # Set the tab name to be filename
+            self.notebook.SetPageText(self.notebook.GetSelection(), filename)
+
+            filehandle.close()
+        except:
+            pass
 
 
 if __name__ == "__main__":
