@@ -5,11 +5,15 @@ import wx
 import sys
 import os
 import wx.lib.agw.flatnotebook as fnb
+import wx.stc as stc
 
 
 class Tab(wx.Panel):
     # Initialize Tab
     def __init__(self, parent):
+
+        self.leftMargin = 50;
+
         # Initialize wxPanel
         wx.Panel.__init__(self, parent=parent)
 
@@ -17,15 +21,25 @@ class Tab(wx.Panel):
         self.SetSizer(self.sizer)
 
         # create text control in tab
-        self.text_control = wx.TextCtrl(self, style=wx.TE_MULTILINE | wx.TE_RICH2)
+        self.text_control = stc.StyledTextCtrl(self, style=wx.TE_MULTILINE | wx.TE_WORDWRAP)
 
         # set focus to text editor canvas
         self.text_control.SetFocus
 
-        # set font size and family
-        self.font = wx.Font(15, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, True)
+        # set font size and family and also change font vaue from self.notebook.Setfont
+        self.font = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, True)
 
-        self.text_control.SetFont(self.font)
+        self.text_control.SetViewWhiteSpace(False)
+        self.text_control.SetMargins(5,0)
+        self.text_control.SetMarginType(1,stc.STC_MARGIN_NUMBER)
+        self.text_control.SetMarginWidth(1,self.leftMargin)
+
+        # lune controll conlor fore = text color and back = background color
+        self.text_control.StyleSetSpec(stc.STC_STYLE_LINENUMBER,'fore:#000000,back:#278F8A')
+
+        self.text_control.StyleSetFont(1,self.font)
+
+        #self.text_control.SetFont(self.font)
         self.sizer.Add(self.text_control, -1, wx.EXPAND)
 
         # set text colour
@@ -33,6 +47,7 @@ class Tab(wx.Panel):
 
         # set background colour
         self.text_control.SetBackgroundColour(wx.WHITE)
+
 
         # Filename of tab
         self.filename = ""
@@ -67,7 +82,7 @@ class Frame(wx.Frame):
 
         # create the notebook
         self.notebook = fnb.FlatNotebook(self.panel)
-        self.notebook.SetFont(wx.Font(15, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, True))
+        self.notebook.SetFont(wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, True))
 
         self.notebook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnTabChange)
 
