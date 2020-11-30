@@ -6,7 +6,6 @@ import sys
 import os
 import wx.lib.agw.flatnotebook as fnb
 import wx.stc as stc
-from functools import partial
 
 
 class Tab(wx.Panel):
@@ -67,9 +66,6 @@ class Tab(wx.Panel):
 
         # File Path
         self.pathname = ""
-
-        # CS File type
-        self.csfiletype = ""
 
 
 class Frame(wx.Frame):
@@ -215,8 +211,6 @@ class Frame(wx.Frame):
                 directory = dialog.GetDirectory()
                 pathname = wx.FileDialog.GetPath(dialog)
                 filetype = os.path.splitext(pathname)
-                if filetype[1] == '.cs':
-                    self.PopUpForCSFile()
 
                 # Open the right file
                 filehandle = open(os.path.join(directory, filename), 'r')
@@ -343,9 +337,6 @@ class Frame(wx.Frame):
             self.notebook.GetCurrentPage().filename = ""
             self.notebook.GetCurrentPage().directory = ""
             self.notebook.GetCurrentPage().last_save = ""
-            self.notebook.GetCurrentPage().pathname = ""
-            self.notebook.GetCurrentPage().filetype = ""
-            self.StatusBar.SetStatusText("", 1)
             self.notebook.GetCurrentPage().saved = False
             if self.notebook.GetCurrentPage().text_control != None:
                 self.notebook.GetCurrentPage().text_control.SetValue("")
@@ -382,31 +373,9 @@ class Frame(wx.Frame):
 
             ftype = switcher.get(filetype[1], filetype[1])
 
-            if ftype == 'C#':
-                if self.notebook.GetCurrentPage().csfiletype == 'C#':
-                    self.StatusBar.SetStatusText("C# File", 1)
-                else:
-                    if self.notebook.GetCurrentPage().csfiletype == 'Unity C#':
-                        self.StatusBar.SetStatusText("Unity C# File", 1)
-            else:
-                self.StatusBar.SetStatusText(ftype + " File", 1)
+            self.StatusBar.SetStatusText(ftype + " File", 1)
         else:
             self.StatusBar.SetStatusText("", 1)
-
-    def PopUpForCSFile(self):
-        self.popupmenu = wx.Menu()
-        menuitem1 = self.popupmenu.Append(-1, 'C#')
-        self.Bind(wx.EVT_MENU, partial(self.option_chosen, 1), menuitem1)
-        menuitem2 = self.popupmenu.Append(-1, 'Unity C#')
-        self.Bind(wx.EVT_MENU, partial(self.option_chosen, 2), menuitem2)
-
-        self.PopupMenu(self.popupmenu, (200, 0))
-
-    def option_chosen(self, num, e):
-        if num == 1:
-            self.notebook.GetCurrentPage().csfiletype = "C#"
-        if num == 2:
-            self.notebook.GetCurrentPage().csfiletype = "Unity C#"
 
     # Opening file while double-clicked or entered in file explorer
     def OnFileSelectedFromExp(self, e):
