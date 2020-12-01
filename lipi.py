@@ -111,15 +111,22 @@ class Frame(wx.Frame):
         self.SetupKeyboardShortcuts()
 
         # Create the status bar
+        self.SetStatusbar()   
+
+        # Open editor maximized
+        self.Maximize()
+        self.Layout()
+
+
+    #status bar
+    def SetStatusbar(self):
         self.CreateStatusBar(2)
         self.StatusBar.SetStatusWidths([-5, -1])
         self.StatusBar.SetBackgroundColour((220, 220, 220))
         self.StatusBar.SetStatusText("", 0)
         self.StatusBar.SetStatusText("", 1)
-
-        # Open editor maximized
-        self.Maximize()
-        self.Layout()
+    
+    
 
     # file explorer control
     def SetFileExplorer(self):
