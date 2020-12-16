@@ -6,7 +6,6 @@ import sys
 import os
 import wx.lib.agw.flatnotebook as fnb
 import wx.stc as stc
-from functools import partial
 
 
 class Tab(wx.Panel):
@@ -25,7 +24,7 @@ class Tab(wx.Panel):
         self.text_control = stc.StyledTextCtrl(self, style=wx.TE_MULTILINE | wx.TE_WORDWRAP)
 
         # set focus to text editor canvas
-        self.text_control.SetFocus
+        self.text_control.SetFocus()
 
         # set font size and family and also change font vaue from self.notebook.Setfont
         self.font = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, True)
@@ -36,9 +35,11 @@ class Tab(wx.Panel):
         self.text_control.SetMarginWidth(1,self.leftMargin)
 
         # lune controll conlor fore = text color and back = background color
-        self.text_control.StyleSetSpec(stc.STC_STYLE_LINENUMBER,'fore:#000000,back:#278F8A')
+        self.text_control.StyleSetSpec(stc.STC_STYLE_LINENUMBER,'fore:#000000,back:#e8e8e8')
 
         self.text_control.StyleSetFont(1,self.font)
+
+        self.text_control.Bind(wx.EVT_KEY_UP, Frame.StatusbarLineColumn)
 
         #self.text_control.SetFont(self.font)
         self.sizer.Add(self.text_control, -1, wx.EXPAND)
@@ -48,7 +49,6 @@ class Tab(wx.Panel):
 
         # set background colour
         self.text_control.SetBackgroundColour(wx.WHITE)
-
 
         # Filename of tab
         self.filename = ""
@@ -68,16 +68,15 @@ class Tab(wx.Panel):
         # File Path
         self.pathname = ""
 
-        # CS File type
-        self.csfiletype = ""
-
-
 class Frame(wx.Frame):
     # initialize Frame
     def __init__(self, parent=None):
 
         # initialize wxframe
         wx.Frame.__init__(self, None, wx.ID_ANY, "LIPI IDE", size=(800, 600))
+
+        self.Bind(wx.EVT_SIZE,self.SetFileExplorerSize)
+        self.Bind(wx.EVT_SIZE,self.SetFileExplorerSize)
 
         self.panel = wx.Panel(self)
         # self.panel.SetPosition((200,0))
@@ -89,7 +88,6 @@ class Frame(wx.Frame):
         self.notebook.SetFont(wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, True))
 
         self.notebook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnTabChange)
-
         # call the hight-level setup function
         self.SetupEditor()
 
@@ -111,28 +109,41 @@ class Frame(wx.Frame):
         self.SetupKeyboardShortcuts()
 
         # Create the status bar
-        self.SetStatusbar()   
+        self.SetStatusBar()
+        #self.StatusbarLineColumn()
+
 
         # Open editor maximized
         self.Maximize()
         self.Layout()
 
-
-    #status bar
-    def SetStatusbar(self):
+    def SetStatusBar(self):
         self.CreateStatusBar(2)
         self.StatusBar.SetStatusWidths([-5, -1])
         self.StatusBar.SetBackgroundColour((220, 220, 220))
         self.StatusBar.SetStatusText("", 0)
         self.StatusBar.SetStatusText("", 1)
-    
-    
+
+    # status bar line and column
+    def StatusbarLineColumn(self):
+        print("1")
+        control = Tab(self.notebook)
+        line = control.text_control.CurrentLine()
+        col = control.text_control.GetColumn(control.text_control.GetCurrentPos())
+        stat = "Ln: %s, Col: %s" % (line, col)
+        self.StatusBar.SetStatusText(stat, 0)
 
     # file explorer control
     def SetFileExplorer(self):
         self.file_explorer_x, self.file_explorer_y = wx.Frame.GetSize(self)
-        self.file_explorer = wx.GenericDirCtrl(self.panel, -1, size=(200, self.file_explorer_y),
+        self.file_explorer = wx.GenericDirCtrl(self.panel, -1, size=(200, self.file_explorer_y-100),
                                                style=wx.DIRCTRL_3D_INTERNAL | wx.DIRCTRL_MULTIPLE | wx.DIRCTRL_EDIT_LABELS | wx.EXPAND)
+        self.file_explorer.Bind(wx.EVT_DIRCTRL_FILEACTIVATED, self.OnFileSelectedFromExp)
+
+    # file explorer control for size change
+    def SetFileExplorerSize(self, e):
+        self.file_explorer_x, self.file_explorer_y = wx.Frame.GetSize(self)
+        self.file_explorer.SetSize((200,self.file_explorer_y-100))
         self.file_explorer.Bind(wx.EVT_DIRCTRL_FILEACTIVATED, self.OnFileSelectedFromExp)
 
     # Function to setup default tab
@@ -222,8 +233,6 @@ class Frame(wx.Frame):
                 directory = dialog.GetDirectory()
                 pathname = wx.FileDialog.GetPath(dialog)
                 filetype = os.path.splitext(pathname)
-                if filetype[1] == '.cs':
-                    self.PopUpForCSFile()
 
                 # Open the right file
                 filehandle = open(os.path.join(directory, filename), 'r')
@@ -350,9 +359,6 @@ class Frame(wx.Frame):
             self.notebook.GetCurrentPage().filename = ""
             self.notebook.GetCurrentPage().directory = ""
             self.notebook.GetCurrentPage().last_save = ""
-            self.notebook.GetCurrentPage().pathname = ""
-            self.notebook.GetCurrentPage().filetype = ""
-            self.StatusBar.SetStatusText("", 1)
             self.notebook.GetCurrentPage().saved = False
             if self.notebook.GetCurrentPage().text_control != None:
                 self.notebook.GetCurrentPage().text_control.SetValue("")
@@ -389,31 +395,9 @@ class Frame(wx.Frame):
 
             ftype = switcher.get(filetype[1], filetype[1])
 
-            if ftype == 'C#':
-                if self.notebook.GetCurrentPage().csfiletype == 'C#':
-                    self.StatusBar.SetStatusText("C# File", 1)
-                else:
-                    if self.notebook.GetCurrentPage().csfiletype == 'Unity C#':
-                        self.StatusBar.SetStatusText("Unity C# File", 1)
-            else:
-                self.StatusBar.SetStatusText(ftype + " File", 1)
+            self.StatusBar.SetStatusText(ftype + " File", 1)
         else:
             self.StatusBar.SetStatusText("", 1)
-
-    def PopUpForCSFile(self):
-        self.popupmenu = wx.Menu()
-        menuitem1 = self.popupmenu.Append(-1, 'C#')
-        self.Bind(wx.EVT_MENU, partial(self.option_chosen, 1), menuitem1)
-        menuitem2 = self.popupmenu.Append(-1, 'Unity C#')
-        self.Bind(wx.EVT_MENU, partial(self.option_chosen, 2), menuitem2)
-
-        self.PopupMenu(self.popupmenu, (200, 0))
-
-    def option_chosen(self, num, e):
-        if num == 1:
-            self.notebook.GetCurrentPage().csfiletype = "C#"
-        if num == 2:
-            self.notebook.GetCurrentPage().csfiletype = "Unity C#"
 
     # Opening file while double-clicked or entered in file explorer
     def OnFileSelectedFromExp(self, e):
@@ -456,7 +440,6 @@ class Frame(wx.Frame):
             filehandle.close()
         except:
             pass
-
 
 if __name__ == "__main__":
     # Create a wx App
