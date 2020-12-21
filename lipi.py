@@ -245,15 +245,15 @@ class Frame(wx.Frame):
                 filehandle = open(os.path.join(directory, filename), 'r')
                 # Check if a new tab needs to be created to display contents of opened file
                 if (self.notebook.GetPageCount() == 1
-                        and self.notebook.GetCurrentPage().text_control.GetValue() == ""):
-                    self.notebook.GetCurrentPage().text_control.SetValue(filehandle.read())
+                        and text_control.GetValue() == ""):
+                    text_control.SetValue(filehandle.read())
                     self.notebook.GetCurrentPage().filename = filename
                     self.notebook.GetCurrentPage().directory = directory
                     self.notebook.GetCurrentPage().pathname = pathname
                     self.notebook.GetCurrentPage().filetype = filetype
                     self.get_filetype(self.notebook.GetCurrentPage().filetype)
 
-                    self.notebook.GetCurrentPage().last_save = self.notebook.GetCurrentPage().text_control.GetValue()
+                    self.notebook.GetCurrentPage().last_save = text_control.GetValue()
 
                     self.notebook.GetCurrentPage().saved = True
                 else:
@@ -267,8 +267,8 @@ class Frame(wx.Frame):
                     self.notebook.AddPage(new_tab, "Untitled", select=True)
                     wx.CallAfter(new_tab.SetFocus)
                     # Populate the tab with file contents
-                    new_tab.text_control.SetValue(filehandle.read())
-                    new_tab.last_save = new_tab.text_control.GetValue()
+                    text_control.SetValue(filehandle.read())
+                    new_tab.last_save = text_control.GetValue()
                     new_tab.saved = True
                 # Set the tab name to be filename
                 self.notebook.SetPageText(self.notebook.GetSelection(), filename)
@@ -283,7 +283,7 @@ class Frame(wx.Frame):
 
         try:
             # Grab the content to be saved
-            save_as_file_contents = self.notebook.GetCurrentPage().text_control.GetValue()
+            save_as_file_contents = text_control.GetValue()
             filehandle = open(os.path.join(self.notebook.GetCurrentPage().directory,
                                            self.notebook.GetCurrentPage().filename), 'w')
             filehandle.write(save_as_file_contents)
@@ -292,7 +292,7 @@ class Frame(wx.Frame):
             self.notebook.GetCurrentPage().saved = True
         except:
             # Check if save is required
-            if (self.notebook.GetCurrentPage().text_control.GetValue()
+            if (text_control.GetValue()
                     != self.notebook.GetCurrentPage().last_save):
                 self.notebook.GetCurrentPage().saved = False
 
@@ -307,7 +307,7 @@ class Frame(wx.Frame):
                                        wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
                 if dialog.ShowModal() == wx.ID_OK:
                     # Grab the content to be saved
-                    save_as_file_contents = self.notebook.GetCurrentPage().text_control.GetValue()
+                    save_as_file_contents = text_control.GetValue()
 
                     # Open, Write & Close File
                     save_as_name = dialog.GetFilename()
@@ -337,7 +337,7 @@ class Frame(wx.Frame):
                                    wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
             if dialog.ShowModal() == wx.ID_OK:
                 # Grab the content to be saved
-                save_as_file_contents = self.notebook.GetCurrentPage().text_control.GetValue()
+                save_as_file_contents = text_control.GetValue()
 
                 # Open, Write & Close File
                 save_as_name = dialog.GetFilename()
@@ -367,8 +367,8 @@ class Frame(wx.Frame):
             self.notebook.GetCurrentPage().directory = ""
             self.notebook.GetCurrentPage().last_save = ""
             self.notebook.GetCurrentPage().saved = False
-            if self.notebook.GetCurrentPage().text_control != None:
-                self.notebook.GetCurrentPage().text_control.SetValue("")
+            if text_control != None:
+                text_control.SetValue("")
             # wx.CallAfter(self.notebook.GetCurrentPage().SetFocus)
         else:
             self.notebook.DeletePage(self.notebook.GetSelection())
@@ -417,15 +417,15 @@ class Frame(wx.Frame):
             filehandle = open(pathname, 'r')
 
             if (self.notebook.GetPageCount() == 1
-                    and self.notebook.GetCurrentPage().text_control.GetValue() == ""):
-                self.notebook.GetCurrentPage().text_control.SetValue(filehandle.read())
+                    and text_control.GetValue() == ""):
+                text_control.SetValue(filehandle.read())
                 self.notebook.GetCurrentPage().filename = filename
                 self.notebook.GetCurrentPage().directory = directory
                 self.notebook.GetCurrentPage().pathname = pathname
                 self.notebook.GetCurrentPage().filetype = filetype
                 self.get_filetype(self.notebook.GetCurrentPage().filetype)
 
-                self.notebook.GetCurrentPage().last_save = self.notebook.GetCurrentPage().text_control.GetValue()
+                self.notebook.GetCurrentPage().last_save = text_control.GetValue()
 
                 self.notebook.GetCurrentPage().saved = True
             else:
@@ -438,8 +438,8 @@ class Frame(wx.Frame):
                 self.notebook.AddPage(new_tab, "Untitled", select=True)
                 wx.CallAfter(new_tab.SetFocus)
                 # Populate the tab with file contents
-                new_tab.text_control.SetValue(filehandle.read())
-                new_tab.last_save = new_tab.text_control.GetValue()
+                text_control.SetValue(filehandle.read())
+                new_tab.last_save = text_control.GetValue()
                 new_tab.saved = True
             # Set the tab name to be filename
             self.notebook.SetPageText(self.notebook.GetSelection(), filename)
