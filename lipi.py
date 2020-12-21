@@ -21,34 +21,36 @@ class Tab(wx.Panel):
         self.SetSizer(self.sizer)
 
         # create text control in tab
-        self.text_control = stc.StyledTextCtrl(self, style=wx.TE_MULTILINE | wx.TE_WORDWRAP)
+        global text_control
+        text_control = stc.StyledTextCtrl(self, style=wx.TE_MULTILINE | wx.TE_WORDWRAP)
 
         # set focus to text editor canvas
-        self.text_control.SetFocus()
+        text_control.SetFocus()
 
         # set font size and family and also change font vaue from self.notebook.Setfont
         self.font = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, True)
 
-        self.text_control.SetViewWhiteSpace(False)
-        self.text_control.SetMargins(5,0)
-        self.text_control.SetMarginType(1,stc.STC_MARGIN_NUMBER)
-        self.text_control.SetMarginWidth(1,self.leftMargin)
+        text_control.SetViewWhiteSpace(False)
+        text_control.SetMargins(5,0)
+        text_control.SetMarginType(1,stc.STC_MARGIN_NUMBER)
+        text_control.SetMarginWidth(1,self.leftMargin)
 
         # lune controll conlor fore = text color and back = background color
-        self.text_control.StyleSetSpec(stc.STC_STYLE_LINENUMBER,'fore:#000000,back:#e8e8e8')
+        text_control.StyleSetSpec(stc.STC_STYLE_LINENUMBER,'fore:#000000,back:#e8e8e8')
 
-        self.text_control.StyleSetFont(1,self.font)
+        text_control.StyleSetFont(1,self.font)
 
-        self.text_control.Bind(wx.EVT_KEY_UP, Frame.StatusbarLineColumn)
+        text_control.Bind(wx.EVT_KEY_UP, Frame.UpdateLineCol)
+        text_control.Bind(wx.EVT_LEFT_UP, Frame.UpdateLineCol)
 
-        #self.text_control.SetFont(self.font)
-        self.sizer.Add(self.text_control, -1, wx.EXPAND)
+        #text_control.SetFont(self.font)
+        self.sizer.Add(text_control, -1, wx.EXPAND)
 
         # set text colour
-        self.text_control.SetForegroundColour(wx.BLACK)
+        text_control.SetForegroundColour(wx.BLACK)
 
         # set background colour
-        self.text_control.SetBackgroundColour(wx.WHITE)
+        text_control.SetBackgroundColour(wx.WHITE)
 
         # Filename of tab
         self.filename = ""
@@ -75,8 +77,8 @@ class Frame(wx.Frame):
         # initialize wxframe
         wx.Frame.__init__(self, None, wx.ID_ANY, "LIPI IDE", size=(800, 600))
 
-        self.Bind(wx.EVT_SIZE,self.SetFileExplorerSize)
-        self.Bind(wx.EVT_SIZE,self.SetFileExplorerSize)
+        #self.Bind(wx.EVT_SIZE,self.SetFileExplorerSize)
+        #self.Bind(wx.EVT_SIZE,self.SetFileExplorerSize)
 
         self.panel = wx.Panel(self)
         # self.panel.SetPosition((200,0))
@@ -110,7 +112,7 @@ class Frame(wx.Frame):
 
         # Create the status bar
         self.SetStatusBar()
-        #self.StatusbarLineColumn()
+        #StatusBarLineColumn()
 
 
         # Open editor maximized
@@ -118,20 +120,25 @@ class Frame(wx.Frame):
         self.Layout()
 
     def SetStatusBar(self):
-        self.CreateStatusBar(2)
-        self.StatusBar.SetStatusWidths([-5, -1])
-        self.StatusBar.SetBackgroundColour((220, 220, 220))
-        self.StatusBar.SetStatusText("", 0)
-        self.StatusBar.SetStatusText("", 1)
+        global StatusBar
+        StatusBar = self.CreateStatusBar(2)
+        StatusBar.SetStatusWidths([-5, -1])
+        StatusBar.SetBackgroundColour((220, 220, 220))
+        StatusBar.SetStatusText("", 0)
+        StatusBar.SetStatusText("", 1)
 
     # status bar line and column
-    def StatusbarLineColumn(self):
-        print("1")
-        control = Tab(self.notebook)
-        line = control.text_control.CurrentLine()
-        col = control.text_control.GetColumn(control.text_control.GetCurrentPos())
-        stat = "Ln: %s, Col: %s" % (line, col)
-        self.StatusBar.SetStatusText(stat, 0)
+    def UpdateLineCol(self,e=wx.EVT_KEY_UP):
+        current = text_control
+        line = current.GetCurrentLine() + 1
+        col = current.GetColumn(current.GetCurrentPos())
+        stat = "  Line %s, column %s " % (line, col)
+        #print(line)
+        Frame.SetTextInStatusbar(self,stat)
+
+    #set text to status bar at 0 poition
+    def SetTextInStatusbar(self,str):
+        StatusBar.SetStatusText(str, 0)
 
     # file explorer control
     def SetFileExplorer(self):
@@ -395,9 +402,9 @@ class Frame(wx.Frame):
 
             ftype = switcher.get(filetype[1], filetype[1])
 
-            self.StatusBar.SetStatusText(ftype + " File", 1)
+            StatusBar.SetStatusText(ftype + " File", 1)
         else:
-            self.StatusBar.SetStatusText("", 1)
+            StatusBar.SetStatusText("", 1)
 
     # Opening file while double-clicked or entered in file explorer
     def OnFileSelectedFromExp(self, e):
