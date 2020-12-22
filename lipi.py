@@ -77,13 +77,12 @@ class Frame(wx.Frame):
         # initialize wxframe
         wx.Frame.__init__(self, None, wx.ID_ANY, "LIPI IDE", size=(800, 600))
 
-        #self.Bind(wx.EVT_SIZE,self.SetFileExplorerSize)
-        #self.Bind(wx.EVT_SIZE,self.SetFileExplorerSize)
-
         self.panel = wx.Panel(self)
         # self.panel.SetPosition((200,0))
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.panel.SetSizer(self.sizer, False)
+        self.file_explorer_box = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.file_explorer_box,0,wx.EXPAND)
 
         # create the notebook
         self.notebook = fnb.FlatNotebook(self.panel)
@@ -146,12 +145,8 @@ class Frame(wx.Frame):
         self.file_explorer = wx.GenericDirCtrl(self.panel, -1, size=(200, self.file_explorer_y-100),
                                                style=wx.DIRCTRL_3D_INTERNAL | wx.DIRCTRL_MULTIPLE | wx.DIRCTRL_EDIT_LABELS | wx.EXPAND)
         self.file_explorer.Bind(wx.EVT_DIRCTRL_FILEACTIVATED, self.OnFileSelectedFromExp)
-
-    # file explorer control for size change
-    def SetFileExplorerSize(self, e):
-        self.file_explorer_x, self.file_explorer_y = wx.Frame.GetSize(self)
-        self.file_explorer.SetSize((200,self.file_explorer_y-100))
-        self.file_explorer.Bind(wx.EVT_DIRCTRL_FILEACTIVATED, self.OnFileSelectedFromExp)
+        self.file_explorer_box.Add(self.file_explorer, wx.EXPAND | wx.ALL)
+        # file explorer control for size change
 
     # Function to setup default tab
     def SetupDefaultTab(self):
