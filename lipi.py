@@ -6,7 +6,8 @@ import sys
 import os
 import wx.lib.agw.flatnotebook as fnb
 import wx.stc as stc
-import time
+from functools import partial
+
 
 class Tab(wx.Panel):
     # Initialize Tab
@@ -21,36 +22,33 @@ class Tab(wx.Panel):
         self.SetSizer(self.sizer)
 
         # create text control in tab
-        global text_control
-        text_control = stc.StyledTextCtrl(self, style=wx.TE_MULTILINE | wx.TE_WORDWRAP)
+        self.text_control = stc.StyledTextCtrl(self, style=wx.TE_MULTILINE | wx.TE_WORDWRAP)
 
         # set focus to text editor canvas
-        text_control.SetFocus()
+        self.text_control.SetFocus
 
         # set font size and family and also change font vaue from self.notebook.Setfont
         self.font = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, True)
 
-        text_control.SetViewWhiteSpace(False)
-        text_control.SetMargins(5,0)
-        text_control.SetMarginType(1,stc.STC_MARGIN_NUMBER)
-        text_control.SetMarginWidth(1,self.leftMargin)
+        self.text_control.SetViewWhiteSpace(False)
+        self.text_control.SetMargins(5,0)
+        self.text_control.SetMarginType(1,stc.STC_MARGIN_NUMBER)
+        self.text_control.SetMarginWidth(1,self.leftMargin)
 
         # lune controll conlor fore = text color and back = background color
-        text_control.StyleSetSpec(stc.STC_STYLE_LINENUMBER,'fore:#000000,back:#e8e8e8')
+        self.text_control.StyleSetSpec(stc.STC_STYLE_LINENUMBER,'fore:#000000,back:#278F8A')
 
-        text_control.StyleSetFont(1,self.font)
+        self.text_control.StyleSetFont(1,self.font)
 
-        text_control.Bind(wx.EVT_KEY_UP, self.UpdateLineCol)
-        text_control.Bind(wx.EVT_LEFT_UP, self.UpdateLineCol)
-
-        #text_control.SetFont(self.font)
-        self.sizer.Add(text_control, -1, wx.EXPAND)
+        #self.text_control.SetFont(self.font)
+        self.sizer.Add(self.text_control, -1, wx.EXPAND)
 
         # set text colour
-        text_control.SetForegroundColour(wx.BLACK)
+        self.text_control.SetForegroundColour(wx.BLACK)
 
         # set background colour
-        text_control.SetBackgroundColour(wx.WHITE)
+        self.text_control.SetBackgroundColour(wx.WHITE)
+
 
         # Filename of tab
         self.filename = ""
@@ -70,15 +68,9 @@ class Tab(wx.Panel):
         # File Path
         self.pathname = ""
 
-    # status bar line and column
-    def UpdateLineCol(self, e):
-        current = text_control
-        line = current.GetCurrentLine() + 1
-        col = current.GetColumn(current.GetCurrentPos())
-        stat = "  Line %s, column %s " % (line, col)
-        #print(line)
-        StatusBar.SetStatusText(stat, 0)
-        e.Skip()
+        # CS File type
+        self.csfiletype = ""
+
 
 class Frame(wx.Frame):
     # initialize Frame
@@ -91,14 +83,13 @@ class Frame(wx.Frame):
         # self.panel.SetPosition((200,0))
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.panel.SetSizer(self.sizer, False)
-        self.file_explorer_box = wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(self.file_explorer_box,0,wx.EXPAND)
 
         # create the notebook
         self.notebook = fnb.FlatNotebook(self.panel)
         self.notebook.SetFont(wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, True))
 
         self.notebook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnTabChange)
+
         # call the hight-level setup function
         self.SetupEditor()
 
@@ -120,43 +111,29 @@ class Frame(wx.Frame):
         self.SetupKeyboardShortcuts()
 
         # Create the status bar
-        self.SetStatusBar()
-        #StatusBarLineColumn()
-
+        self.CreateStatusBar(2)
+        self.StatusBar.SetStatusWidths([-5, -1])
+        self.StatusBar.SetBackgroundColour((220, 220, 220))
+        self.StatusBar.SetStatusText("", 0)
+        self.StatusBar.SetStatusText("", 1)
 
         # Open editor maximized
         self.Maximize()
         self.Layout()
 
-    def SetStatusBar(self):
-        global StatusBar
-        StatusBar = self.CreateStatusBar(2)
-        StatusBar.SetStatusWidths([-5, -1])
-        StatusBar.SetBackgroundColour((220, 220, 220))
-        StatusBar.SetStatusText("", 0)
-        StatusBar.SetStatusText("", 1)
-
-    # Update line column moved above (in Tab) ^^^^^^^^^^
-
-    #set text to status bar at 0 poition
-    def SetTextInStatusbar(self,str):
-        StatusBar.SetStatusText(str, 0)
-
     # file explorer control
     def SetFileExplorer(self):
         self.file_explorer_x, self.file_explorer_y = wx.Frame.GetSize(self)
-        self.file_explorer = wx.GenericDirCtrl(self.panel, -1, size=(200, self.file_explorer_y-100),
+        self.file_explorer = wx.GenericDirCtrl(self.panel, -1, size=(200, self.file_explorer_y),
                                                style=wx.DIRCTRL_3D_INTERNAL | wx.DIRCTRL_MULTIPLE | wx.DIRCTRL_EDIT_LABELS | wx.EXPAND)
         self.file_explorer.Bind(wx.EVT_DIRCTRL_FILEACTIVATED, self.OnFileSelectedFromExp)
-        self.file_explorer_box.Add(self.file_explorer, wx.EXPAND | wx.ALL)
-        # file explorer control for size change
 
     # Function to setup default tab
     def SetupDefaultTab(self):
         # Create the default tab
         self.default_tab = Tab(self.notebook)
         self.notebook.AddPage(self.default_tab, "Untitled")
-        self.sizer.Add(self.notebook, 1, wx.EXPAND | wx.LEFT, 0)
+        self.sizer.Add(self.notebook, 1, wx.EXPAND | wx.LEFT, 200)
         # self.panel.SetSizer(self.sizer)
 
     # function to setup menubar
@@ -238,20 +215,22 @@ class Frame(wx.Frame):
                 directory = dialog.GetDirectory()
                 pathname = wx.FileDialog.GetPath(dialog)
                 filetype = os.path.splitext(pathname)
+                if filetype[1] == '.cs':
+                    self.PopUpForCSFile()
 
                 # Open the right file
                 filehandle = open(os.path.join(directory, filename), 'r')
                 # Check if a new tab needs to be created to display contents of opened file
                 if (self.notebook.GetPageCount() == 1
-                        and text_control.GetValue() == ""):
-                    text_control.SetValue(filehandle.read())
+                        and self.notebook.GetCurrentPage().text_control.GetValue() == ""):
+                    self.notebook.GetCurrentPage().text_control.SetValue(filehandle.read())
                     self.notebook.GetCurrentPage().filename = filename
                     self.notebook.GetCurrentPage().directory = directory
                     self.notebook.GetCurrentPage().pathname = pathname
                     self.notebook.GetCurrentPage().filetype = filetype
                     self.get_filetype(self.notebook.GetCurrentPage().filetype)
 
-                    self.notebook.GetCurrentPage().last_save = text_control.GetValue()
+                    self.notebook.GetCurrentPage().last_save = self.notebook.GetCurrentPage().text_control.GetValue()
 
                     self.notebook.GetCurrentPage().saved = True
                 else:
@@ -265,8 +244,8 @@ class Frame(wx.Frame):
                     self.notebook.AddPage(new_tab, "Untitled", select=True)
                     wx.CallAfter(new_tab.SetFocus)
                     # Populate the tab with file contents
-                    text_control.SetValue(filehandle.read())
-                    new_tab.last_save = text_control.GetValue()
+                    new_tab.text_control.SetValue(filehandle.read())
+                    new_tab.last_save = new_tab.text_control.GetValue()
                     new_tab.saved = True
                 # Set the tab name to be filename
                 self.notebook.SetPageText(self.notebook.GetSelection(), filename)
@@ -281,7 +260,7 @@ class Frame(wx.Frame):
 
         try:
             # Grab the content to be saved
-            save_as_file_contents = text_control.GetValue()
+            save_as_file_contents = self.notebook.GetCurrentPage().text_control.GetValue()
             filehandle = open(os.path.join(self.notebook.GetCurrentPage().directory,
                                            self.notebook.GetCurrentPage().filename), 'w')
             filehandle.write(save_as_file_contents)
@@ -290,7 +269,7 @@ class Frame(wx.Frame):
             self.notebook.GetCurrentPage().saved = True
         except:
             # Check if save is required
-            if (text_control.GetValue()
+            if (self.notebook.GetCurrentPage().text_control.GetValue()
                     != self.notebook.GetCurrentPage().last_save):
                 self.notebook.GetCurrentPage().saved = False
 
@@ -305,7 +284,7 @@ class Frame(wx.Frame):
                                        wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
                 if dialog.ShowModal() == wx.ID_OK:
                     # Grab the content to be saved
-                    save_as_file_contents = text_control.GetValue()
+                    save_as_file_contents = self.notebook.GetCurrentPage().text_control.GetValue()
 
                     # Open, Write & Close File
                     save_as_name = dialog.GetFilename()
@@ -335,7 +314,7 @@ class Frame(wx.Frame):
                                    wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
             if dialog.ShowModal() == wx.ID_OK:
                 # Grab the content to be saved
-                save_as_file_contents = text_control.GetValue()
+                save_as_file_contents = self.notebook.GetCurrentPage().text_control.GetValue()
 
                 # Open, Write & Close File
                 save_as_name = dialog.GetFilename()
@@ -364,9 +343,12 @@ class Frame(wx.Frame):
             self.notebook.GetCurrentPage().filename = ""
             self.notebook.GetCurrentPage().directory = ""
             self.notebook.GetCurrentPage().last_save = ""
+            self.notebook.GetCurrentPage().pathname = ""
+            self.notebook.GetCurrentPage().filetype = ""
+            self.StatusBar.SetStatusText("", 1)
             self.notebook.GetCurrentPage().saved = False
-            if text_control != None:
-                text_control.SetValue("")
+            if self.notebook.GetCurrentPage().text_control != None:
+                self.notebook.GetCurrentPage().text_control.SetValue("")
             # wx.CallAfter(self.notebook.GetCurrentPage().SetFocus)
         else:
             self.notebook.DeletePage(self.notebook.GetSelection())
@@ -400,9 +382,31 @@ class Frame(wx.Frame):
 
             ftype = switcher.get(filetype[1], filetype[1])
 
-            StatusBar.SetStatusText(ftype + " File", 1)
+            if ftype == 'C#':
+                if self.notebook.GetCurrentPage().csfiletype == 'C#':
+                    self.StatusBar.SetStatusText("C# File", 1)
+                else:
+                    if self.notebook.GetCurrentPage().csfiletype == 'Unity C#':
+                        self.StatusBar.SetStatusText("Unity C# File", 1)
+            else:
+                self.StatusBar.SetStatusText(ftype + " File", 1)
         else:
-            StatusBar.SetStatusText("", 1)
+            self.StatusBar.SetStatusText("", 1)
+
+    def PopUpForCSFile(self):
+        self.popupmenu = wx.Menu()
+        menuitem1 = self.popupmenu.Append(-1, 'C#')
+        self.Bind(wx.EVT_MENU, partial(self.option_chosen, 1), menuitem1)
+        menuitem2 = self.popupmenu.Append(-1, 'Unity C#')
+        self.Bind(wx.EVT_MENU, partial(self.option_chosen, 2), menuitem2)
+
+        self.PopupMenu(self.popupmenu, (200, 0))
+
+    def option_chosen(self, num, e):
+        if num == 1:
+            self.notebook.GetCurrentPage().csfiletype = "C#"
+        if num == 2:
+            self.notebook.GetCurrentPage().csfiletype = "Unity C#"
 
     # Opening file while double-clicked or entered in file explorer
     def OnFileSelectedFromExp(self, e):
@@ -415,15 +419,15 @@ class Frame(wx.Frame):
             filehandle = open(pathname, 'r')
 
             if (self.notebook.GetPageCount() == 1
-                    and text_control.GetValue() == ""):
-                text_control.SetValue(filehandle.read())
+                    and self.notebook.GetCurrentPage().text_control.GetValue() == ""):
+                self.notebook.GetCurrentPage().text_control.SetValue(filehandle.read())
                 self.notebook.GetCurrentPage().filename = filename
                 self.notebook.GetCurrentPage().directory = directory
                 self.notebook.GetCurrentPage().pathname = pathname
                 self.notebook.GetCurrentPage().filetype = filetype
                 self.get_filetype(self.notebook.GetCurrentPage().filetype)
 
-                self.notebook.GetCurrentPage().last_save = text_control.GetValue()
+                self.notebook.GetCurrentPage().last_save = self.notebook.GetCurrentPage().text_control.GetValue()
 
                 self.notebook.GetCurrentPage().saved = True
             else:
@@ -436,17 +440,15 @@ class Frame(wx.Frame):
                 self.notebook.AddPage(new_tab, "Untitled", select=True)
                 wx.CallAfter(new_tab.SetFocus)
                 # Populate the tab with file contents
-                text_control.SetValue(filehandle.read())
-                new_tab.last_save = text_control.GetValue()
+                new_tab.text_control.SetValue(filehandle.read())
+                new_tab.last_save = new_tab.text_control.GetValue()
                 new_tab.saved = True
             # Set the tab name to be filename
             self.notebook.SetPageText(self.notebook.GetSelection(), filename)
 
             filehandle.close()
         except:
-            dlg = wx.MessageDialog(self, "Could not Open The File ", "Error", wx.ICON_ERROR)
-            dlg.ShowModal()
-            dlg.Destroy()
+            pass
 
 
 if __name__ == "__main__":
