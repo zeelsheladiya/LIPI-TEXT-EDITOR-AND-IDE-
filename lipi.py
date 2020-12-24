@@ -7,7 +7,6 @@ import os
 import wx.lib.agw.flatnotebook as fnb
 import wx.stc as stc
 
-
 class Tab(wx.Panel):
     # Initialize Tab
     def __init__(self, parent):
@@ -40,8 +39,8 @@ class Tab(wx.Panel):
 
         text_control.StyleSetFont(1,self.font)
 
-        text_control.Bind(wx.EVT_KEY_UP, Frame.UpdateLineCol)
-        text_control.Bind(wx.EVT_LEFT_UP, Frame.UpdateLineCol)
+        text_control.Bind(wx.EVT_KEY_UP, self.UpdateLineCol)
+        text_control.Bind(wx.EVT_LEFT_UP, self.UpdateLineCol)
 
         #text_control.SetFont(self.font)
         self.sizer.Add(text_control, -1, wx.EXPAND)
@@ -69,6 +68,16 @@ class Tab(wx.Panel):
 
         # File Path
         self.pathname = ""
+
+    # status bar line and column
+    def UpdateLineCol(self, e):
+        current = text_control
+        line = current.GetCurrentLine() + 1
+        col = current.GetColumn(current.GetCurrentPos())
+        stat = "  Line %s, column %s " % (line, col)
+        #print(line)
+        StatusBar.SetStatusText(stat, 0)
+        e.Skip()
 
 class Frame(wx.Frame):
     # initialize Frame
@@ -126,14 +135,7 @@ class Frame(wx.Frame):
         StatusBar.SetStatusText("", 0)
         StatusBar.SetStatusText("", 1)
 
-    # status bar line and column
-    def UpdateLineCol(self,e=wx.EVT_KEY_UP):
-        current = text_control
-        line = current.GetCurrentLine() + 1
-        col = current.GetColumn(current.GetCurrentPos())
-        stat = "  Line %s, column %s " % (line, col)
-        #print(line)
-        Frame.SetTextInStatusbar(self,stat)
+    # Update line column moved above (in Tab) ^^^^^^^^^^
 
     #set text to status bar at 0 poition
     def SetTextInStatusbar(self,str):
@@ -153,7 +155,7 @@ class Frame(wx.Frame):
         # Create the default tab
         self.default_tab = Tab(self.notebook)
         self.notebook.AddPage(self.default_tab, "Untitled")
-        self.sizer.Add(self.notebook, 1, wx.EXPAND | wx.LEFT, 200)
+        self.sizer.Add(self.notebook, 1, wx.EXPAND | wx.LEFT, 0)
         # self.panel.SetSizer(self.sizer)
 
     # function to setup menubar
@@ -441,7 +443,10 @@ class Frame(wx.Frame):
 
             filehandle.close()
         except:
-            pass
+            dlg = wx.MessageDialog(self, "Could not Open The File ", "Error", wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
+
 
 if __name__ == "__main__":
     # Create a wx App
