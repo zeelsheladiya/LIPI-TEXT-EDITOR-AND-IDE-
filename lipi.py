@@ -32,18 +32,18 @@ class Tab(wx.Panel):
         self.font = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, True)
 
         self.text_control.SetViewWhiteSpace(False)
-        self.text_control.SetMargins(5,0)
-        self.text_control.SetMarginType(1,stc.STC_MARGIN_NUMBER)
-        self.text_control.SetMarginWidth(1,self.leftMargin)
+        self.text_control.SetMargins(5, 0)
+        self.text_control.SetMarginType(1, stc.STC_MARGIN_NUMBER)
+        self.text_control.SetMarginWidth(1, self.leftMargin)
 
         # lune controll conlor fore = text color and back = background color
-        self.text_control.StyleSetSpec(stc.STC_STYLE_LINENUMBER,'fore:#000000,back:#e8e8e8')
+        self.text_control.StyleSetSpec(stc.STC_STYLE_LINENUMBER, 'fore:#000000,back:#e8e8e8')
 
-        self.text_control.StyleSetFont(1,self.font)
+        self.text_control.StyleSetFont(1, self.font)
 
         # Bind textcontrol gone below!
 
-        #text_control.SetFont(self.font)
+        # text_control.SetFont(self.font)
         self.sizer.Add(self.text_control, -1, wx.EXPAND)
 
         # set text colour
@@ -79,6 +79,38 @@ class Tab(wx.Panel):
         # print(line)
         StatusBar.SetStatusText(stat, 0)
         e.Skip()
+        filetype = StatusBar.GetStatusText(1);
+        self.textHightlight(filetype)
+
+    def textHightlight(self, file):
+        filetype = file
+        text = self.text_control
+        code = text.Text
+        code = code.split(' ')
+
+        for i in code:
+
+            if filetype == "":
+
+                if i == "import":
+                    text.StyleSetSpec(wx.TE_HT_ON_TEXT, 'fore:#235644')
+                    #text.SetDefaultStyle(wx.TEXT_ATTR_TEXT_COLOUR(wx.BLUE))
+                    #text.SetBackgroundColour(wx.BLUE)
+
+                else:
+                    text.StyleSetSpec(wx.TE_HT_ON_TEXT, 'fore:#111111')
+                    #text.SetDefaultStyle(wx.TEXT_ATTR_TEXT_COLOUR(wx.NullColour))
+                    #text.SetBackgroundColour(wx.NullColour)
+
+
+            elif filetype == "Python File":
+                text.StyleSetSpec(wx.TEXT_ATTR_EFFECT_SHADOW, 'fore:#235644,back:#e8e8e8')
+
+            elif filetype == "C++ File":
+                pass
+
+            else:
+                pass;
 
 
 class Frame(wx.Frame):
@@ -93,7 +125,7 @@ class Frame(wx.Frame):
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.panel.SetSizer(self.sizer, False)
         self.file_explorer_box = wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(self.file_explorer_box,0,wx.EXPAND)
+        self.sizer.Add(self.file_explorer_box, 0, wx.EXPAND)
 
         # create the notebook
         self.notebook = fnb.FlatNotebook(self.panel)
@@ -122,7 +154,7 @@ class Frame(wx.Frame):
 
         # Create the status bar
         self.SetStatusBar()
-        #StatusBarLineColumn()
+        # StatusBarLineColumn()
 
         self.BindingTxtCont()
 
@@ -148,14 +180,14 @@ class Frame(wx.Frame):
         current = self.notebook.GetCurrentPage()
         current.UpdateLineColTab(e)
 
-    #set text to status bar at 0 poition
-    def SetTextInStatusbar(self,str):
+    # set text to status bar at 0 poition
+    def SetTextInStatusbar(self, str):
         StatusBar.SetStatusText(str, 0)
 
     # file explorer control
     def SetFileExplorer(self):
         self.file_explorer_x, self.file_explorer_y = wx.Frame.GetSize(self)
-        self.file_explorer = wx.GenericDirCtrl(self.panel, -1, size=(200, self.file_explorer_y-100),
+        self.file_explorer = wx.GenericDirCtrl(self.panel, -1, size=(200, self.file_explorer_y - 100),
                                                style=wx.DIRCTRL_3D_INTERNAL | wx.DIRCTRL_MULTIPLE | wx.DIRCTRL_EDIT_LABELS | wx.EXPAND)
         self.file_explorer.Bind(wx.EVT_DIRCTRL_FILEACTIVATED, self.OnFileSelectedFromExp)
         self.file_explorer_box.Add(self.file_explorer, wx.EXPAND | wx.ALL)
